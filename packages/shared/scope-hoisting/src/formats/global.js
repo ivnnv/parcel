@@ -1,7 +1,13 @@
 // @flow
 
-import type {Asset, Bundle, BundleGraph, Symbol} from '@parcel/types';
-import type {NodePath} from '@babel/traverse';
+import type {
+  Asset,
+  Bundle,
+  BundleGraph,
+  Symbol,
+  PluginOptions,
+} from '@parcel/types';
+import type {NodePath, Scope} from '@babel/traverse';
 import type {
   Identifier,
   Program,
@@ -38,6 +44,7 @@ export function generateBundleImports(
   from: Bundle,
   bundle: Bundle,
   assets: Set<Asset>,
+  scope: Scope, // eslint-disable-line no-unused-vars
 ) {
   let statements = [];
 
@@ -61,7 +68,8 @@ export function generateBundleImports(
   return statements;
 }
 
-export function generateExternalImport() {
+// eslint-disable-next-line no-unused-vars
+export function generateExternalImport(a: any, b: any, c: any) {
   throw new Error(
     'External modules are not supported when building for browser',
   );
@@ -72,6 +80,8 @@ export function generateExports(
   bundle: Bundle,
   referencedAssets: Set<Asset>,
   path: NodePath<Program>,
+  replacements: Map<Symbol, Symbol>, // eslint-disable-line no-unused-vars
+  options: PluginOptions, // eslint-disable-line no-unused-vars
 ) {
   let exported = new Set<Symbol>();
   let statements = [];

@@ -7,6 +7,7 @@ import {relativeUrl} from '@parcel/utils';
 
 import {BABEL_RANGE} from './constants';
 import packageJson from '../package.json';
+import * as bundledBabelCore from '@babel/core';
 
 const transformerVersion: mixed = packageJson.version;
 invariant(typeof transformerVersion === 'string');
@@ -19,11 +20,13 @@ export default async function babel7(
 ): Promise<?AST> {
   // If this is an internally generated config, use our internal @babel/core,
   // otherwise require a local version from the package we're compiling.
-  let babel = babelOptions.internal
-    ? require('@babel/core')
-    : await options.packageManager.require('@babel/core', asset.filePath, {
-        range: BABEL_RANGE,
-      });
+  let babel =
+    // $FlowFixMe
+    babelOptions.internal || process.browser
+      ? bundledBabelCore
+      : await options.packageManager.require('@babel/core', asset.filePath, {
+          range: BABEL_RANGE,
+        });
 
   let config = {
     ...babelOptions.config,

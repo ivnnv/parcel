@@ -1,9 +1,8 @@
 // @flow strict-local
 
 import type {FilePath} from '@parcel/types';
+import path from 'path';
 import {isGlob} from './glob';
-
-const path = require('path');
 
 export default function getRootDir(files: Array<FilePath>): FilePath {
   let cur = null;

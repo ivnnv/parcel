@@ -7,7 +7,7 @@ import type {
   PluginOptions,
   Symbol,
 } from '@parcel/types';
-import type {NodePath} from '@babel/traverse';
+import type {NodePath, Scope} from '@babel/traverse';
 import type {Program} from '@babel/types';
 import type {ExternalModule} from '../types';
 
@@ -24,6 +24,7 @@ export function generateBundleImports(
   from: Bundle,
   bundle: Bundle,
   assets: Set<Asset>,
+  scope: Scope, // eslint-disable-line no-unused-vars
 ) {
   let specifiers = [...assets].map(asset => {
     let id = getIdentifier(asset, 'init');
@@ -41,6 +42,7 @@ export function generateBundleImports(
 export function generateExternalImport(
   bundle: Bundle,
   external: ExternalModule,
+  scope: Scope, // eslint-disable-line no-unused-vars
 ) {
   let {source, specifiers, isCommonJS} = external;
   let defaultSpecifier = null;

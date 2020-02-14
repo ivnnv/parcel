@@ -7,6 +7,7 @@ import presetEnv from '@babel/preset-env';
 
 import getBabelTargets from './getBabelTargets';
 import {enginesToBabelTargets} from './utils';
+import plugin from '@parcel/babel-preset-env';
 
 /**
  * Generates a @babel/preset-env config for an asset.
@@ -34,7 +35,7 @@ export default async function getEnvOptions(config: Config) {
     targets: appBabelTargets,
     presets: [
       [
-        '@parcel/babel-preset-env',
+        plugin,
         {
           useBuiltIns: 'entry',
           corejs: 3,

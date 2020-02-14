@@ -23,7 +23,7 @@ export type DiagnosticCodeHighlight = {|
 
 export type DiagnosticCodeFrame = {|
   code: string,
-  codeHighlights: DiagnosticCodeHighlight | Array<DiagnosticCodeHighlight>,
+  codeHighlights: Array<DiagnosticCodeHighlight>,
 |};
 
 // A Diagnostic is a style agnostic way of emitting errors, warnings and info
@@ -117,16 +117,18 @@ export function errorToDiagnostic(
   if (error.loc && error.source) {
     codeFrame = {
       code: error.source,
-      codeHighlights: {
-        start: {
-          line: error.loc.line,
-          column: error.loc.column,
+      codeHighlights: [
+        {
+          start: {
+            line: error.loc.line,
+            column: error.loc.column,
+          },
+          end: {
+            line: error.loc.line,
+            column: error.loc.column,
+          },
         },
-        end: {
-          line: error.loc.line,
-          column: error.loc.column,
-        },
-      },
+      ],
     };
   }
 

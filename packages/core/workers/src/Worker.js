@@ -44,18 +44,20 @@ export default class Worker extends EventEmitter {
   }
 
   async fork(forkModule: FilePath) {
-    let filteredArgs = process.execArgv.filter(
-      v => !/^--(debug|inspect)/.test(v),
-    );
-
-    for (let i = 0; i < filteredArgs.length; i++) {
-      let arg = filteredArgs[i];
-      if (
-        (arg === '-r' || arg === '--require') &&
-        filteredArgs[i + 1] === '@parcel/register'
-      ) {
-        filteredArgs.splice(i, 2);
-        i--;
+    let filteredArgs = [];
+    if (process.execArgv) {
+      filteredArgs = process.execArgv.filter(
+        v => !/^--(debug|inspect)/.test(v),
+      );
+      for (let i = 0; i < filteredArgs.length; i++) {
+        let arg = filteredArgs[i];
+        if (
+          (arg === '-r' || arg === '--require') &&
+          filteredArgs[i + 1] === '@parcel/register'
+        ) {
+          filteredArgs.splice(i, 2);
+          i--;
+        }
       }
     }
 

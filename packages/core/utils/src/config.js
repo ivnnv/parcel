@@ -5,6 +5,9 @@ import type {FileSystem} from '@parcel/fs';
 import path from 'path';
 import clone from 'clone';
 
+import {parse as parseJson5} from 'json5';
+import {parse as parseToml} from '@iarna/toml';
+
 type ConfigOutput = {|
   config: ConfigResult,
   files: Array<File>,
@@ -15,8 +18,8 @@ type ConfigOptions = {|
 |};
 
 const PARSERS = {
-  json: require('json5').parse,
-  toml: require('@iarna/toml').parse,
+  json: parseJson5,
+  toml: parseToml,
 };
 
 const existsCache = new Map();

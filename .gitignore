@@ -1,16 +1,20 @@
 node_modules/
-.DS_Store
+
 package-lock.json
+.DS_Store
 coverage
 .nyc_output
+
 .cache
 .parcel-cache
 dist
 lib
+*.min.js
+
 .vscode/
 .idea/
-*.min.js
-# Logs
+.now/
+
 logs
 *.log
 npm-debug.log*

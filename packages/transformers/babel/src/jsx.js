@@ -2,6 +2,8 @@
 import type {Config} from '@parcel/types';
 import path from 'path';
 
+import plugin from '@babel/plugin-transform-react-jsx';
+
 const JSX_EXTENSIONS = {
   '.jsx': true,
   '.tsx': true,
@@ -49,7 +51,7 @@ export default async function getJSXOptions(config: Config) {
 
   if (pragma || JSX_EXTENSIONS[path.extname(config.searchPath)]) {
     return {
-      plugins: [['@babel/plugin-transform-react-jsx', {pragma, pragmaFrag}]],
+      plugins: [[plugin, {pragma, pragmaFrag}]],
     };
   }
 }

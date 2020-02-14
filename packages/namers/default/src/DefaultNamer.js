@@ -62,16 +62,18 @@ export default new Namer({
             filePath: loc.filePath,
             codeFrame: {
               code: await options.inputFS.readFile(loc.filePath, 'utf8'),
-              codeHighlights: {
-                start: loc.start,
-                end: loc.end,
-                message: `Did you mean "${fullName.slice(
-                  0,
-                  -path.extname(fullName).length,
-                ) +
-                  '.' +
-                  bundle.type}"?`,
-              },
+              codeHighlights: [
+                {
+                  start: loc.start,
+                  end: loc.end,
+                  message: `Did you mean "${fullName.slice(
+                    0,
+                    -path.extname(fullName).length,
+                  ) +
+                    '.' +
+                    bundle.type}"?`,
+                },
+              ],
             },
             hints: [
               `Try changing the file extension of "${
@@ -120,7 +122,7 @@ function nameFromContent(bundle: Bundle, rootDir: FilePath): string {
       name = path.basename(entryFilePath);
     }
 
-    return name;
+    return name || 'bundle';
   }
 }
 

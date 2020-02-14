@@ -1,12 +1,14 @@
 // @flow
-import semver from 'semver';
-
-import logger from '@parcel/logger';
-import {CONFIG} from '@parcel/plugin';
 import type {FilePath, PackageName} from '@parcel/types';
 import type {PackageManager} from '@parcel/package-manager';
 
-const PARCEL_VERSION = require('../package.json').version;
+import logger from '@parcel/logger';
+import {CONFIG} from '@parcel/plugin';
+import semver from 'semver';
+
+import {version as _PARCEL_VERSION} from '../package.json';
+// $FlowFixMe
+const PARCEL_VERSION = '2.0.0-repl';
 
 export default async function loadPlugin(
   packageManager: PackageManager,

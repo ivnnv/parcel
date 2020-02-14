@@ -158,6 +158,7 @@ export default class Parcel {
 
     if (!this.#initialOptions.workerFarm) {
       // If there wasn't a workerFarm passed in, we created it. End the farm.
+      // TODO running run() again now will not work!
       await this.#farm.end();
     }
 
@@ -258,12 +259,12 @@ export default class Parcel {
       let {assetGraph, changedAssets} = await this.#assetGraphBuilder.build(
         signal,
       );
-      dumpGraphToGraphViz(assetGraph, 'MainAssetGraph');
+      await dumpGraphToGraphViz(assetGraph, 'MainAssetGraph');
 
       // $FlowFixMe Added in Flow 0.121.0 upgrade in #4381
       let bundleGraph = await this.#bundlerRunner.bundle(assetGraph, {signal});
       // $FlowFixMe Added in Flow 0.121.0 upgrade in #4381 (Windows only)
-      dumpGraphToGraphViz(bundleGraph._graph, 'BundleGraph');
+      await dumpGraphToGraphViz(bundleGraph._graph, 'BundleGraph');
 
       await this.#packagerRunner.writeBundles(bundleGraph);
       assertSignalNotAborted(signal);
@@ -387,6 +388,6 @@ export class BuildError extends ThrowableDiagnostic {
 export function createWorkerFarm(options: $Shape<FarmOptions> = {}) {
   return new WorkerFarm({
     ...options,
-    workerPath: require.resolve('./worker'),
+    workerPath: '@parcel/core/src/worker.js', //require.resolve('./worker'),
   });
 }

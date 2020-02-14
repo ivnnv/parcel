@@ -1,4 +1,5 @@
 // @flow
+/* global MessageChannel:readonly */
 
 import type {FileSystem, FileOptions, ReaddirOptions} from './types';
 import type {FilePath} from '@parcel/types';
@@ -14,6 +15,21 @@ import {registerSerializableClass} from '@parcel/core';
 import packageJSON from '../package.json';
 import WorkerFarm, {Handle} from '@parcel/workers';
 import nullthrows from 'nullthrows';
+
+let DataBuffer = ArrayBuffer;
+// Safari has removed the constructor
+if (typeof SharedArrayBuffer !== 'undefined') {
+  let channel = new MessageChannel();
+  try {
+    // Firefox might throw when sending the Buffer over a MessagePort
+    channel.port1.postMessage(new SharedArrayBuffer(0));
+    DataBuffer = SharedArrayBuffer;
+  } catch (_) {
+    // NOOP
+  }
+  channel.port1.close();
+  channel.port2.close();
+}
 
 const instances = new Map();
 let id = 0;
@@ -841,15 +857,12 @@ class Directory extends Entry {
 }
 
 function makeShared(contents: Buffer | string): Buffer {
-  if (
-    typeof contents !== 'string' &&
-    contents.buffer instanceof SharedArrayBuffer
-  ) {
+  if (typeof contents !== 'string' && contents.buffer instanceof DataBuffer) {
     return contents;
   }
 
   let length = Buffer.byteLength(contents);
-  let shared = new SharedArrayBuffer(length);
+  let shared = new DataBuffer(length);
   let buffer = Buffer.from(shared);
   if (typeof contents === 'string') {
     buffer.write(contents);

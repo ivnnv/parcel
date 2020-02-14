@@ -1,0 +1,36 @@
+{
+  "name": "@parcel/repl",
+  "version": "2.0.0-alpha.3.2",
+  "license": "MIT",
+  "private": true,
+  "default": "dist/index.html",
+  "source": "src/index.html",
+  "scripts": {
+    "build": "parcel2 build . --no-source-maps && yarn copy-wasm",
+    "copy-wasm": "cp $(node -p 'require.resolve(\"@mischnic/dot-svg/dist/index-browser.wasm\")') dist/",
+    "serve": "serve dist/ -c ../serve.json"
+  },
+  "dependencies": {
+    "@codemirror/next": "^0.4.0",
+    "@mischnic/codemirror-preact": "^0.0.5",
+    "@mischnic/dot-svg": "^0.0.0",
+    "@mischnic/pako": "^1.0.10",
+    "@parcel/config-repl": "^2.0.0-alpha.3",
+    "@parcel/core": "^2.0.0-alpha.3.2",
+    "@parcel/fs": "^2.0.0-alpha.3",
+    "@parcel/package-manager": "^2.0.0-alpha.3",
+    "comlink": "^4.2.0",
+    "filesize": "^6.1.0",
+    "isomorphic-fetch": "^2.2.1",
+    "preact": "^10.3.3",
+    "semver": "^7.1.3"
+  },
+  "alias": {
+    "fs": "./fs.js",
+    "@parcel/watcher": false
+  },
+  "browserslist": "Chrome 75",
+  "targets": {
+    "default": {}
+  }
+}

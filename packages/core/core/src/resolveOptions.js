@@ -6,6 +6,7 @@ import type {ParcelOptions} from './types';
 import {getRootDir} from '@parcel/utils';
 import loadDotEnv from './loadDotEnv';
 import path from 'path';
+import nullthrows from 'nullthrows';
 import {resolveConfig} from '@parcel/utils';
 import {NodeFS} from '@parcel/fs';
 import Cache from '@parcel/cache';
@@ -18,24 +19,32 @@ const LOCK_FILE_NAMES = ['yarn.lock', 'package-lock.json', 'pnpm-lock.yaml'];
 export default async function resolveOptions(
   initialOptions: InitialParcelOptions,
 ): Promise<ParcelOptions> {
+  // $FlowFixMe
+  let inputFS = process.browser
+    ? nullthrows(initialOptions.inputFS)
+    : initialOptions.inputFS || new NodeFS();
+  let outputFS = initialOptions.outputFS || inputFS; // || new NodeFS();
+
+  let inputCwd = inputFS.cwd();
+  let outputCwd = outputFS.cwd();
+
   let entries: Array<FilePath>;
   if (initialOptions.entries == null || initialOptions.entries === '') {
     entries = [];
   } else if (Array.isArray(initialOptions.entries)) {
-    entries = initialOptions.entries.map(entry => path.resolve(entry));
+    entries = initialOptions.entries.map(entry =>
+      path.resolve(inputCwd, entry),
+    );
   } else {
-    entries = [path.resolve(initialOptions.entries)];
+    entries = [path.resolve(inputCwd, initialOptions.entries)];
   }
-
-  let inputFS = initialOptions.inputFS || new NodeFS();
-  let outputFS = initialOptions.outputFS || new NodeFS();
 
   let packageManager =
     initialOptions.packageManager || new NodePackageManager(inputFS);
 
   let rootDir =
     initialOptions.rootDir != null
-      ? path.resolve(initialOptions.rootDir)
+      ? await inputFS.realpath(initialOptions.rootDir)
       : getRootDir(entries);
 
   let projectRootFile =
@@ -43,7 +52,7 @@ export default async function resolveOptions(
       ...LOCK_FILE_NAMES,
       '.git',
       '.hg',
-    ])) || path.join(inputFS.cwd(), 'index'); // ? Should this just be rootDir
+    ])) || path.join(inputCwd, 'index'); // ? Should this just be rootDir
 
   let lockFile = null;
   let rootFileName = path.basename(projectRootFile);
@@ -52,7 +61,6 @@ export default async function resolveOptions(
   }
   let projectRoot = path.dirname(projectRootFile);
 
-  let outputCwd = outputFS.cwd();
   let cacheDir =
     // If a cacheDir is provided, resolve it relative to cwd. Otherwise,
     // use a default directory resolved relative to the project root.
@@ -97,7 +105,7 @@ export default async function resolveOptions(
     publicUrl: initialOptions.publicUrl ?? '/',
     distDir:
       initialOptions.distDir != null
-        ? path.resolve(initialOptions.distDir)
+        ? await inputFS.realpath(initialOptions.distDir)
         : null,
     logLevel: initialOptions.logLevel ?? 'info',
     projectRoot,

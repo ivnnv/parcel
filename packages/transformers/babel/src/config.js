@@ -43,11 +43,13 @@ export async function load(
     }
   }
 
-  let babelCore = await options.packageManager.require(
-    '@babel/core',
-    config.searchPath,
-    {range: BABEL_RANGE},
-  );
+  // $FlowFixMe
+  let babelCore = process.browser
+    ? bundledBabelCore
+    : await options.packageManager.require('@babel/core', config.searchPath, {
+        range: BABEL_RANGE,
+      });
+
   let partialConfig = babelCore.loadPartialConfig({
     filename: config.searchPath,
     cwd: path.dirname(config.searchPath),
@@ -244,20 +246,28 @@ async function definePluginDependencies(config) {
   let configItems = [...babelConfig.presets, ...babelConfig.plugins];
   await Promise.all(
     configItems.map(async configItem => {
-      let pkg = nullthrows(
-        await config.getConfigFrom(configItem.file.resolved, ['package.json'], {
-          parse: true,
-        }),
-      );
-      config.addDevDependency(pkg.name, pkg.version);
+      if (configItem.file) {
+        let pkg = nullthrows(
+          await config.getConfigFrom(
+            configItem.file.resolved,
+            ['package.json'],
+            {
+              parse: true,
+            },
+          ),
+        );
+        config.addDevDependency(pkg.name, pkg.version);
+      }
     }),
   );
 }
 
 export async function postDeserialize(config: Config, options: PluginOptions) {
-  let babelCore = config.result.internal
-    ? bundledBabelCore
-    : await options.packageManager.require('@babel/core', config.searchPath);
+  let babelCore =
+    // $FlowFixMe
+    config.result.internal || process.browser
+      ? bundledBabelCore
+      : await options.packageManager.require('@babel/core', config.searchPath);
 
   config.result.config.presets = await Promise.all(
     config.result.config.presets.map(async configItem => {

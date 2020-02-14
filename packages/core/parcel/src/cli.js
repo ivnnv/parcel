@@ -39,8 +39,7 @@ const version = require('../package.json').version;
 // used in Parcel (such as in process.env inlining).
 const initialNodeEnv = process.env.NODE_ENV;
 // Then, override NODE_ENV to be PARCEL_BUILD_ENV (replaced with `production` in builds)
-// so that dependencies of Parcel like React (which renders the cli through `ink`)
-// run in the appropriate mode.
+// so that dependencies of Parcel run in the appropriate mode.
 if (typeof process.env.PARCEL_BUILD_ENV === 'string') {
   process.env.NODE_ENV = process.env.PARCEL_BUILD_ENV;
 }
@@ -180,9 +179,10 @@ async function run(entries: Array<string>, command: any) {
     packageManager,
     defaultConfig: {
       ...defaultConfig,
-      filePath: (
-        await packageManager.resolve('@parcel/config-default', __filename)
-      ).resolved,
+      filePath: (await packageManager.resolve(
+        '@parcel/config-default',
+        __filename,
+      )).resolved,
     },
     patchConsole: true,
     ...(await normalizeOptions(command)),
