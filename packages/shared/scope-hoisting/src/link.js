@@ -306,6 +306,15 @@ export function link({
       }
 
       specifiers.set(imported, renamed);
+
+      // a variable so we can track the scope
+      let [decl] = programScope.path.unshiftContainer(
+        'body',
+        t.variableDeclaration('var', [
+          t.variableDeclarator(t.identifier(renamed)),
+        ]),
+      );
+      programScope.registerDeclaration(decl);
     }
 
     return specifiers.get('*');
@@ -333,7 +342,16 @@ export function link({
       invariant(imported.assets != null);
       imported.assets.add(mod);
 
-      return t.callExpression(getIdentifier(mod, 'init'), []);
+      let initIdentifier = getIdentifier(mod, 'init');
+
+      // a variable so we can track the scope
+      let program = path.scope.getProgramParent().path;
+      let [decl] = program.unshiftContainer('body', [
+        t.variableDeclaration('var', [t.variableDeclarator(initIdentifier)]),
+      ]);
+      program.scope.registerDeclaration(decl);
+
+      return t.callExpression(initIdentifier, []);
     }
   }
 
@@ -612,32 +630,18 @@ export function link({
         // Recrawl to get all bindings.
         path.scope.crawl();
 
-        // Insert imports for external bundles
-        let imports = [];
         for (let file of importedFiles.values()) {
           if (file.bundle) {
-            imports.push(
-              ...format.generateBundleImports(
-                bundle,
-                file.bundle,
-                file.assets,
-                path.scope,
-              ),
+            format.generateBundleImports(
+              bundle,
+              file.bundle,
+              file.assets,
+              path,
             );
           } else {
-            imports.push(
-              ...format.generateExternalImport(bundle, file, path.scope),
-            );
+            format.generateExternalImport(bundle, file, path);
           }
         }
-
-        if (imports.length > 0) {
-          // Add import statements and update scope to collect references
-          path.unshiftContainer('body', imports);
-          path.scope.crawl();
-        }
-
-        path.scope.crawl();
 
         if (referencedAssets.size > 0) {
           // Insert fake init functions that will be imported in other bundles,

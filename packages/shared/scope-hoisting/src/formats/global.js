@@ -8,24 +8,19 @@ import type {
   Program,
   Statement,
   StringLiteral,
-  VariableDeclaration,
+  CallExpression,
 } from '@babel/types';
 
 import * as t from '@babel/types';
 import template from '@babel/template';
 import {relativeBundlePath} from '@parcel/utils';
-import {
-  assertString,
-  getName,
-  getIdentifier,
-  isEntry,
-  isReferenced,
-} from '../utils';
+import {assertString, getName, isEntry, isReferenced} from '../utils';
+import nullthrows from 'nullthrows';
 
-const IMPORT_TEMPLATE = template.statement<
-  {|IDENTIFIER: Identifier, ASSET_ID: StringLiteral|},
-  VariableDeclaration,
->('var IDENTIFIER = parcelRequire(ASSET_ID);');
+const IMPORT_TEMPLATE = template.expression<
+  {|ASSET_ID: StringLiteral|},
+  CallExpression,
+>('parcelRequire(ASSET_ID)');
 const EXPORT_TEMPLATE = template.statement<
   {|IDENTIFIER: Identifier, ASSET_ID: StringLiteral|},
   ExpressionStatement,
@@ -39,9 +34,9 @@ export function generateBundleImports(
   from: Bundle,
   bundle: Bundle,
   assets: Set<Asset>,
+  path: NodePath<Program>,
 ) {
   let statements = [];
-
   if (from.env.isWorker()) {
     statements.push(
       IMPORTSCRIPTS_TEMPLATE({
@@ -49,17 +44,14 @@ export function generateBundleImports(
       }),
     );
   }
+  path.unshiftContainer('body', statements);
 
   for (let asset of assets) {
-    statements.push(
-      IMPORT_TEMPLATE({
-        IDENTIFIER: getIdentifier(asset, 'init'),
-        ASSET_ID: t.stringLiteral(asset.id),
-      }),
-    );
+    // `var ${id};` was inserted already, add RHS
+    nullthrows(path.scope.getBinding(getName(asset, 'init')))
+      .path.get('init')
+      .replaceWith(IMPORT_TEMPLATE({ASSET_ID: t.stringLiteral(asset.id)}));
   }
-
-  return statements;
 }
 
 export function generateExternalImport() {
