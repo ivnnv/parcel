@@ -643,6 +643,10 @@ export function link({
           }
         }
 
+        if (process.env.PARCEL_BUILD_ENV !== 'production') {
+          verifyScopeState(path.scope);
+        }
+
         if (referencedAssets.size > 0) {
           // Insert fake init functions that will be imported in other bundles,
           // because `asset.meta.shouldWrap` isn't set in a packager if `asset` is
@@ -679,10 +683,56 @@ export function link({
           options,
         );
 
+        // if (process.env.PARCEL_BUILD_ENV !== 'production') {
+        //   verifyScopeState(path.scope);
+        // }
+
         treeShake(path.scope, exported);
       },
     },
   });
 
   return ast;
+}
+
+function verifyScopeState(scope) {
+  let oldBindings = scope.bindings;
+  scope.crawl();
+  let newBindings = scope.bindings;
+
+  invariant(
+    Object.keys(oldBindings).length === Object.keys(newBindings).length,
+  );
+  for (let name of Object.keys(newBindings)) {
+    invariant(newBindings[name], name);
+    let {
+      scope: aScope,
+      constantViolations: aConstantViolations,
+      referencePaths: aReferencePaths,
+      identifier: aId,
+      path: aPath,
+      ...a
+    } = oldBindings[name];
+    let {
+      scope: bScope,
+      constantViolations: bConstantViolations,
+      referencePaths: bReferencePaths,
+      identifier: bId,
+      path: bPath,
+      ...b
+    } = newBindings[name];
+    invariant(aPath === bPath, name);
+    invariant(aId === bId, name);
+    invariant(aScope === bScope, name);
+    invariant.deepStrictEqual(a, b, name);
+
+    invariant(aConstantViolations.length === bConstantViolations.length, name);
+    for (let p of bConstantViolations) {
+      invariant(aConstantViolations.indexOf(p) >= 0, name);
+    }
+    invariant(aReferencePaths.length === bReferencePaths.length, name);
+    for (let p of bReferencePaths) {
+      invariant(aReferencePaths.indexOf(p) >= 0, name);
+    }
+  }
 }
